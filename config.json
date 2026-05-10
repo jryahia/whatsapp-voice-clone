@@ -1,0 +1,1 @@
+{"openai_model": "gpt-4o-mini", "openai_max_tokens": 512, "openai_temperature": 0.7, "port": 8080, "host": "0.0.0.0", "profile_name": "default", "log_level": "INFO", "max_messages_per_minute": 50, "confidence_threshold": 0.7, "twilio_whatsapp_number": "+14155238886"}

@@ -1,0 +1,9 @@
+[project]
+name = "whatsapp-voice-clone"
+version = "0.1.0"
+description = "WhatsApp Voice Clone — AI-powered voice clone for WhatsApp business accounts"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["profiler", "responder", "server"]
