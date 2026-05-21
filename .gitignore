@@ -7,3 +7,4 @@ data/profiles/*
 *.egg-info/
 .venv/
 logs/
+check_syntax.py
