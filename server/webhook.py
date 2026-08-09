@@ -2,8 +2,9 @@
 
 Exposes:
 - POST /webhook/twilio — parses Twilio WhatsApp webhooks and returns TwiML
-- GET  /health        — health check endpoint
-- GET  /profiles      — lists all stored voice profiles
+                         (requires a valid X-Twilio-Signature header)
+- GET  /health        — health check endpoint (open)
+- GET  /profiles      — lists all stored voice profiles (localhost only)
 """
 
 from __future__ import annotations
@@ -13,7 +14,8 @@ from collections import defaultdict
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, Form, HTTPException, Request, Response
+from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
 from config import settings
@@ -28,6 +30,9 @@ logger = structlog.get_logger(__name__)
 _rate_limit_buckets: dict[str, list[float]] = defaultdict(list)
 _RATE_LIMIT_WINDOW: int = 60  # seconds
 _RATE_LIMIT_MAX: int = 50     # max requests per window
+
+# Addresses accepted as "localhost" for admin-only endpoints
+_LOCALHOST_ADDRESSES: frozenset[str] = frozenset({"127.0.0.1", "::1", "::ffff:127.0.0.1"})
 
 
 def _check_rate_limit(phone: str) -> bool:
@@ -63,7 +68,7 @@ async def webhook_twilio(
     From: str = Form(...),
     Body: str = Form(""),
     ProfileName: str | None = Form(None),
-) -> str:
+) -> Response:
     """Handle incoming WhatsApp messages from Twilio.
 
     Twilio sends a POST with form-encoded fields:
@@ -72,9 +77,22 @@ async def webhook_twilio(
     - ProfileName  — optional WhatsApp Profile Name
 
     Returns a TwiML XML string with the generated reply.
+
+    The request is rejected with HTTP 403 unless the ``X-Twilio-Signature``
+    header validates against TWILIO_AUTH_TOKEN.
     """
     start_time = time.monotonic()
     log = logger.bind(phone=From, message_truncated=Body[:100])
+
+    # ── Twilio signature validation (must run before anything else) ─────
+    signature = request.headers.get("X-Twilio-Signature")
+    # `request.form()` is already cached by FastAPI's Form(...) parsing above,
+    # so this does not re-read the (already consumed) request stream.
+    form = await request.form()
+    validator = RequestValidator(settings.twilio_auth_token)
+    if not signature or not validator.validate(str(request.url), dict(form), signature):
+        log.warning("invalid_twilio_signature", has_signature=bool(signature))
+        raise HTTPException(status_code=403, detail="Invalid signature")
 
     # ── Rate limiting ───────────────────────────────────────────────────
     if not _check_rate_limit(From):
@@ -98,6 +116,7 @@ async def webhook_twilio(
             message=Body,
             profile_name=settings.profile_name,
             customer_name=ProfileName,
+            customer_phone=From,
         )
         reply_text: str = result.get("reply", "")
     except Exception:
@@ -122,7 +141,7 @@ async def webhook_twilio(
         response_length=len(twiml_result),
     )
 
-    return twiml_result
+    return Response(content=twiml_result, media_type="text/xml")
 
 
 @app.get("/health")
@@ -136,8 +155,13 @@ async def health() -> dict[str, str]:
 
 
 @app.get("/profiles")
-async def list_profiles() -> list[dict]:
-    """List all stored voice profiles."""
+async def list_profiles(request: Request) -> list[dict]:
+    """List all stored voice profiles. Localhost-only."""
+    client = request.client
+    if client is None or client.host not in _LOCALHOST_ADDRESSES:
+        logger.warning("profiles_access_denied", client_host=client.host if client else None)
+        raise HTTPException(status_code=403, detail="Forbidden")
+
     store = ProfileStore(persist_dir=settings.chroma_path)
     profiles = store.list_profiles()
     logger.info("profiles_listed", count=len(profiles))

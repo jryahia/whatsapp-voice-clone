@@ -6,7 +6,7 @@ import time
 from typing import Any
 
 import structlog
-from openai import OpenAI, RateLimitError, APIError
+from openai import OpenAI, RateLimitError, APIError, OpenAIError
 
 from config import settings
 from profiler.analyzer import VoiceProfile
@@ -36,13 +36,15 @@ def generate_reply(
     message: str,
     profile_name: str,
     customer_name: str | None = None,
+    customer_phone: str | None = None,
 ) -> dict[str, Any]:
     """Generate a WhatsApp reply using the owner's voice profile.
 
     Flow
     ----
     1. Load profile from ProfileStore
-    2. Run guardrails — if escalation needed, return escalation message
+    2. Run guardrails — if escalation needed, notify the owner via Escalator
+       and return the escalation message
     3. Build system prompt via PromptBuilder
     4. Call OpenAI chat.completions.create (gpt-4o-mini)
     5. Apply response length limit
@@ -57,6 +59,9 @@ def generate_reply(
         Name of the VoiceProfile to use.
     customer_name:
         Optional name of the customer for personalised prompts.
+    customer_phone:
+        Optional phone number of the customer (as received from Twilio),
+        included in the escalation alert sent to the owner.
 
     Returns
     -------
@@ -92,6 +97,16 @@ def generate_reply(
             reason=guardrail_result.reason,
             confidence=guardrail_result.confidence,
             message=message[:150],
+        )
+        # Notify the owner — `server` imports `responder.generator`, so this
+        # import is function-local to avoid a circular import at module load.
+        from server.escalation import Escalator
+
+        Escalator().escalate(
+            message=message,
+            customer_phone=customer_phone or "unknown",
+            reason=guardrail_result.reason or "",
+            confidence=guardrail_result.confidence,
         )
         reply = _build_escalation_response(guardrail_result.reason)
         return {
@@ -149,14 +164,15 @@ def _call_openai(system_prompt: str, user_prompt: str, log: Any) -> str:
     """Call OpenAI chat.completions with retry on 429 rate limits.
 
     Retries: up to 3 attempts with exponential backoff (2s, 4s, 8s).
+    Any OpenAIError (missing credentials, auth, connection, API) returns the
+    clean _API_ERROR_FALLBACK instead of propagating an uncaught exception.
     """
-    client = OpenAI(api_key=settings.openai_api_key)
-
     max_retries = 3
     base_delay = 2.0
 
     for attempt in range(1, max_retries + 1):
         try:
+            client = OpenAI(api_key=settings.openai_api_key)
             response = client.chat.completions.create(
                 model=settings.openai_model,
                 messages=[
@@ -195,6 +211,15 @@ def _call_openai(system_prompt: str, user_prompt: str, log: Any) -> str:
                 error=str(exc),
             )
             # Non-retryable — return fallback immediately
+            return _API_ERROR_FALLBACK
+
+        except OpenAIError as exc:
+            # Base class: covers missing credentials, auth, connection errors.
+            log.error(
+                "openai_client_error",
+                error_type=type(exc).__name__,
+                error=str(exc),
+            )
             return _API_ERROR_FALLBACK
 
     # Should not reach here, but safety net

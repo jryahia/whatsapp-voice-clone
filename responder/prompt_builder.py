@@ -77,8 +77,9 @@ class PromptBuilder:
         top_words = v.get("top_words", [])
         jargon = v.get("jargon", [])
         if top_words:
+            words = [w["word"] if isinstance(w, dict) else w for w in top_words]
             lines.append(
-                f"  • Parole frequenti: {', '.join(top_words[:8])}"
+                f"  • Parole frequenti: {', '.join(words[:8])}"
             )
         if jargon:
             lines.append(

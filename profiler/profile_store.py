@@ -9,7 +9,12 @@ from pathlib import Path
 from typing import Any
 
 import chromadb
-from chromadb.errors import InvalidCollectionException
+
+try:  # chromadb >=1.x renamed InvalidCollectionException to NotFoundError
+    from chromadb.errors import NotFoundError as CollectionNotFound
+except ImportError:  # chromadb <1.x
+    from chromadb.errors import InvalidCollectionException as CollectionNotFound
+
 import structlog
 
 from .analyzer import VoiceProfile
@@ -44,7 +49,7 @@ class ProfileStore:
         try:
             self._collection = self._client.get_collection(COLLECTION_NAME)
             logger.debug("loaded_existing_collection", collection=COLLECTION_NAME)
-        except (ValueError, InvalidCollectionException):
+        except (ValueError, CollectionNotFound):
             self._collection = self._client.create_collection(COLLECTION_NAME)
             logger.info("created_new_collection", collection=COLLECTION_NAME)
 

@@ -144,6 +144,18 @@ class TestBuildSystemPrompt:
         prompt: str = builder.build_system_prompt()
         assert "Mario Rossi" in prompt
 
+    def test_top_words_as_dicts_does_not_crash(self) -> None:
+        """compute_vocabulary yields top_words as \{\{'word','count'\} dicts; the
+        system prompt builder must handle that real shape without raising."""
+        profile = make_voice_profile(
+            top_words=[{"word": "grazie", "count": 8}, {"word": "pizza", "count": 5}],
+            jargon=["pizza"],
+        )
+        b = PromptBuilder(profile=profile)
+        prompt: str = b.build_system_prompt()
+        assert "grazie" in prompt
+        assert "pizza" in prompt
+
     def test_contains_greeting_instruction(self, builder: PromptBuilder) -> None:
         prompt: str = builder.build_system_prompt()
         # The greeting should appear both as a mention and in the hard rules
