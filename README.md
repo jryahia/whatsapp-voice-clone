@@ -1,5 +1,23 @@
 # WhatsApp Voice Clone
 
+**Learns a business owner's WhatsApp writing style from chat exports and auto-replies to customers in that voice, within business guardrails.**
+
+![Python](https://img.shields.io/badge/Python-161b22?style=for-the-badge&labelColor=161b22&color=161b22) ![FastAPI](https://img.shields.io/badge/FastAPI-161b22?style=for-the-badge&labelColor=161b22&color=161b22) ![OpenAI GPT-4o-mini](https://img.shields.io/badge/OpenAI%20GPT--4o--mini-161b22?style=for-the-badge&labelColor=161b22&color=161b22) ![Twilio](https://img.shields.io/badge/Twilio-161b22?style=for-the-badge&labelColor=161b22&color=161b22)
+
+```mermaid
+flowchart LR
+    S0["Exported WhatsApp chats"]
+    S1["Style profiler (6 dimensions)"]
+    S2["Responder with guardrails"]
+    S3["Twilio webhook server"]
+    S4["Reply in owner's voice"]
+    S0 --> S1 --> S2 --> S3 --> S4
+```
+
+## Problem it solves
+
+Small Italian businesses answer customers on WhatsApp all day and cannot afford enterprise bots, and generic bots sound nothing like the owner. This system builds a style profile from real chats and replies through a Twilio webhook.
+
 > **AI that clones any small business owner's WhatsApp communication style — then auto-replies to customers in their exact voice.**
 
 A Python system that analyzes exported WhatsApp chat history, builds a 6-dimensional "voice profile" (formality, vocabulary, emoji style, greetings, response patterns, time habits), and uses GPT-4o-mini to respond to customers as if it were the owner. Unknown/complex messages escalate to the real person.
@@ -119,8 +137,8 @@ The system implements **7 hard business rules** to prevent mistakes:
 ## Pricing Model
 
 ```
-💰 One-time setup:  €400–€500
-📅 Monthly:         €40–€50
+ One-time setup:  €400–€500
+ Monthly:         €40–€50
 ```
 
 Clients get:
@@ -158,10 +176,10 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Edit .env with your keys:
-#   OPENAI_API_KEY=sk-...
-#   TWILIO_ACCOUNT_SID=AC...
-#   TWILIO_AUTH_TOKEN=...
-#   TWILIO_WHATSAPP_NUMBER=+14155238886
+# OPENAI_API_KEY=sk-...
+# TWILIO_ACCOUNT_SID=AC...
+# TWILIO_AUTH_TOKEN=...
+# TWILIO_WHATSAPP_NUMBER=+14155238886
 ```
 
 ### Train a Voice Profile
@@ -176,10 +194,10 @@ python main.py train \
 
 Output:
 ```
-🔊 Training voice profile: Mario Pizzeria
-   📄 Export: /home/user/whatsapp-voice-clone/data/exports/mario_pizzeria.txt
+ Training voice profile: Mario Pizzeria
+    Export: /home/user/whatsapp-voice-clone/data/exports/mario_pizzeria.txt
 
-✅ Profile analyzed!
+Yes Profile analyzed!
   Formality         informale (0.34)
   Top Words         42 unique
   Preferred Emojis  12 found
@@ -338,5 +356,5 @@ MIT — free to use, modify, and distribute.
 ---
 
 <div align="center">
-Built with ⚓ by <a href="https://github.com/jryahia">Yahia</a>
+Built with  by <a href="https://github.com/jryahia">Yahia</a>
 </div>
