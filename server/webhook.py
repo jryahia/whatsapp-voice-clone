@@ -123,7 +123,7 @@ async def webhook_twilio(
         log.exception("generate_reply_failed")
         reply_text = (
             "Mi dispiace, ho avuto un problema tecnico. "
-            "Glielo chiedo al titolare e ti rispondo appena possibile! 🙏"
+            "Glielo chiedo al titolare e ti rispondo appena possibile!"
         )
 
     # ── Build TwiML response ────────────────────────────────────────────

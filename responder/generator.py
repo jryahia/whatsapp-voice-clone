@@ -22,13 +22,13 @@ MAX_AUTO_REPLY_LENGTH: int = 500
 # Escalation-safe fallback message
 _ESCALATION_FALLBACK = (
     "Glielo chiedo al titolare e ti faccio sapere subito! "
-    "Un attimo solo, per favore 🙏"
+    "Un attimo solo, per favore"
 )
 
 # Another fallback for complete API failure
 _API_ERROR_FALLBACK = (
     "Mi dispiace, ho avuto un problema tecnico. "
-    "Glielo chiedo al titolare e ti rispondo appena possibile! 🙏"
+    "Glielo chiedo al titolare e ti rispondo appena possibile!"
 )
 
 
@@ -231,12 +231,12 @@ def _build_escalation_response(reason: str | None) -> str:
     if reason and "prezzo" in reason.lower():
         return (
             "Glielo chiedo al titolare e ti faccio sapere subito "
-            "per quanto riguarda i prezzi! Un attimo 🙏"
+            "per quanto riguarda i prezzi! Un attimo"
         )
     if reason and "sensitiv" in reason.lower():
         return (
             "Questa cosa la gestisco meglio col titolare — "
-            "glielo chiedo subito e ti faccio sapere! 🙏"
+            "glielo chiedo subito e ti faccio sapere!"
         )
     # Generic escalation
     return _ESCALATION_FALLBACK

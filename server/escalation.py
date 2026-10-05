@@ -16,11 +16,11 @@ from config import settings
 logger = structlog.get_logger(__name__)
 
 _ESCALATION_MESSAGE_TEMPLATE: str = (
-    "🚨 ESCALATION - {profile_name}\n"
-    "📱 Cliente: {phone}\n"
-    "💬 Messaggio: {message}\n"
-    "⚠️ Motivo: {reason}\n"
-    "📊 Confidence: {confidence}"
+    "ESCALATION - {profile_name}\n"
+    "Cliente: {phone}\n"
+    "Messaggio: {message}\n"
+    "Motivo: {reason}\n"
+    "Confidence: {confidence}"
 )
 
 _TELEGRAM_API_BASE: str = "https://api.telegram.org/bot{token}/sendMessage"

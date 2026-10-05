@@ -40,8 +40,8 @@ def train(
         console.print(f"[red]✗ Export file not found: {export_path}[/red]")
         raise typer.Exit(1)
 
-    console.print(Panel(f"[bold yellow]🔊 Training voice profile:[/bold yellow] [cyan]{name}[/cyan]", width=70))
-    console.print(f"   📄 Export: {export_path.resolve()}")
+    console.print(Panel(f"[bold yellow]Training voice profile:[/bold yellow] [cyan]{name}[/cyan]", width=70))
+    console.print(f"   Export: {export_path.resolve()}")
 
     with console.status("[yellow]Analyzing chat history...[/yellow]", spinner="dots"):
         profile = analyze_chat(str(export_path))
@@ -55,7 +55,7 @@ def train(
     top_greeting = profile.greetings.get("most_common", "N/A")
     busiest_hour = profile.time_patterns.get("busiest_hour", "N/A")
 
-    console.print(f"\n[bold green]✅ Profile analyzed![/bold green]")
+    console.print(f"\n[bold green]Profile analyzed![/bold green]")
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column("Dimension", style="cyan")
     table.add_column("Value", style="white")
@@ -93,10 +93,10 @@ def serve(
         console.print(f"   python main.py train --export ... --name \"{name}\"")
         raise typer.Exit(1)
 
-    console.print(Panel(f"[bold green]🚀 Serving profile:[/bold green] [cyan]{name}[/cyan] on :{port}", width=60))
-    console.print(f"   📡 Webhook: POST http://0.0.0.0:{port}/webhook/twilio")
-    console.print(f"   💚 Health:   GET  http://0.0.0.0:{port}/health")
-    console.print(f"   📋 Profiles: GET  http://0.0.0.0:{port}/profiles")
+    console.print(Panel(f"[bold green]Serving profile:[/bold green] [cyan]{name}[/cyan] on :{port}", width=60))
+    console.print(f"   Webhook: POST http://0.0.0.0:{port}/webhook/twilio")
+    console.print(f"   Health:   GET  http://0.0.0.0:{port}/health")
+    console.print(f"   Profiles: GET  http://0.0.0.0:{port}/profiles")
     console.print("\n[dim]Set this webhook URL as your Twilio WhatsApp webhook.[/dim]")
 
     # Override settings
@@ -127,7 +127,7 @@ def test_prompt(
         console.print(f"[red]✗ Profile '{profile_name}' not found.[/red]")
         raise typer.Exit(1)
 
-    console.print(f"[bold yellow]🧪 Testing prompt for:[/bold yellow] [cyan]{profile_name}[/cyan]")
+    console.print(f"[bold yellow]Testing prompt for:[/bold yellow] [cyan]{profile_name}[/cyan]")
     console.print(f"[dim]Customer:[/dim] {message}\n")
 
     # Run through full pipeline (dry run without LLM call if --dry flag)
@@ -145,7 +145,7 @@ def test_prompt(
     console.print(f"\n[bold]User Prompt:[/bold] [dim]{user_prompt[:300]}[/dim]")
 
     if result.should_escalate:
-        console.print(f"\n[red]🚨 GUARDRAIL TRIGGERED:[/red] {result.reason}")
+        console.print(f"\n[red]GUARDRAIL TRIGGERED:[/red] {result.reason}")
         console.print(f"   [red]→ This message would be ESCALATED to the owner.[/red]")
     else:
         console.print(f"\n[green]✓ Guardrail passed (confidence: {result.confidence:.2f})[/green]")

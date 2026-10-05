@@ -48,7 +48,7 @@ def make_voice_profile(
     if jargon is None:
         jargon = ["pizza", "forno", "impasto"]
     if preferred_emojis is None:
-        preferred_emojis = ["😊", "🍕"]
+        preferred_emojis = ["\U0001F60A", "\U0001F355"]
     if greeting_patterns is None:
         greeting_patterns = {"Ciao": 42, "Buongiorno": 10}
     if punctuation_habits is None:
@@ -109,7 +109,7 @@ def pizza_profile() -> VoiceProfile:
         name="Mario Rossi",
         jargon=["pizza", "forno", "impasto", "mozzarella"],
         top_words=["grazie", "pizza", "cliente", "forno", "impasto"],
-        preferred_emojis=["🍕", "😊", "🔥"],
+        preferred_emojis=["\U0001F355", "\U0001F60A", "\U0001F525"],
         most_common_greeting="Ciao",
     )
 
@@ -276,7 +276,7 @@ class TestGetProfileSummary:
     def test_contains_emoji_info(self, builder: PromptBuilder) -> None:
         summary: str = builder.get_profile_summary()
         # Should mention at least one emoji or "nessuna emoji"
-        assert any(e in summary for e in ["🍕", "😊", "🔥", "emoji", "nessuna"])
+        assert any(e in summary for e in ["\U0001F355", "\U0001F60A", "\U0001F525", "emoji", "nessuna"])
 
     def test_contains_jargon_info(self, builder: PromptBuilder) -> None:
         summary: str = builder.get_profile_summary()
